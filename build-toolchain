@@ -91,7 +91,7 @@ if [[ $* == *--binutils* || $* == *--all* ]]; then
 	if ! $BINUTILS_SRC_FOLDER/configure \
 	LDFLAGS='-static' \
 	--target=tricore-elf \
-	--enable-targets=mcs-elf \
+	--enable-targets=tricore-elf \
 	--program-prefix=tricore-elf- \
 	--disable-threads \
 	--enable-nls \
