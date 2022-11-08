@@ -1,6 +1,6 @@
 [submodule "tricore-gcc"]
 	path = tricore-gcc
-	url = git@github.com:EEESlab/tricore-gcc.git
+	url = https://github.com/EEESlab/tricore-gcc
 [submodule "tricore-gcc-toolchain-9.4.0"]
 	path = tricore-gcc-toolchain-9.4.0
 	url = https://github.com/EEESlab/tricore-gcc-toolchain-9.4.0
