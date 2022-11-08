@@ -5,8 +5,8 @@ export INSTALL_FOLDER=$TOOLCHAIN_ROOT/INSTALL
 export BUILD_FOLDER=$TOOLCHAIN_ROOT/BUILD
 export LOG_FOLDER=$TOOLCHAIN_ROOT/LOG
 export PATH=/opt/bin:$INSTALL_FOLDER/bin:$PATH
-PARALLEL_JOBS=$(nproc)
-#PARALLEL_JOBS=1
+#PARALLEL_JOBS=$(nproc)
+PARALLEL_JOBS=1
 
 
 
@@ -42,7 +42,6 @@ if [[ $* == *--binutils* || $* == *--all* ]]; then
 	--target=tricore-elf \
 	--build=x86_64-linux-gnu \
 	--host=i686-w64-mingw32 \
-	--enable-targets=mcs-elf \
 	--program-prefix=tricore-elf- \
 	--disable-threads \
 	--enable-nls \
@@ -99,6 +98,7 @@ if [[ $* == *--gcc-stage1* || $* == *--all* ]]; then
 	--target=tricore-elf \
 	--build=i686-w64-mingw32 \
 	--host=i686-w64-mingw32 \
+	--src=../../tricore-gcc \
 	--enable-lib32 \
 	--disable-lib64 \
 	--prefix=$INSTALL_FOLDER \
@@ -194,10 +194,11 @@ if [[ $* == *--gcc-stage2* || $* == *--all* ]]; then
 	if ! $GCC_SRC_FOLDER/configure \
 	CFLAGS='-I/mingw32/include' \
 	CXXFLAGS='-I/mingw32/include' \
-	LDFLAGS='-static -L/mingw32/lib' \	
+	LDFLAGS='-static -L/mingw32/lib' \
 	--target=tricore-elf \
 	--build=i686-w64-mingw32 \
 	--host=i686-w64-mingw32 \
+	--src=../../tricore-gcc \
 	--enable-lib32 \
 	--disable-lib64 \
 	--prefix=$INSTALL_FOLDER \
