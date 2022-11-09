@@ -28,7 +28,7 @@ Launch a MSYS2 MINGW32 shell from the Start menu
 Install the set of packages required for building a GNU toolchain:
 
 ```
-pacman -S base diffutils git make automake-wrapper isl-devel mpc-devel mpfr-devel gcc mingw-w64-x86_64-gcc mingw-w64-cross-gcc mingw-w64-i686-isl mingw-w64-i686-mpc mingw-w64-i686-mpfr expect flex bison
+pacman -S base diffutils texinfo git make automake-wrapper isl-devel mpc-devel mpfr-devel gcc mingw-w64-x86_64-gcc mingw-w64-cross-gcc mingw-w64-i686-isl mingw-w64-i686-mpc mingw-w64-i686-mpfr expect flex bison
 ```
 
 Set the core.autocrlf property to false (to avoid the automatic convertion of LF endings into CRLF on Git):
