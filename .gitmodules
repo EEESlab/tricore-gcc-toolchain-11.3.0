@@ -2,10 +2,6 @@
 	path = tricore-gcc
 	url = https://github.com/EEESlab/tricore-gcc.git
 	branch = main
-[submodule "tricore-gcc-toolchain-9.4.0"]
-	path = tricore-gcc-toolchain-9.4.0
-	url = https://github.com/EEESlab/tricore-gcc-toolchain-9.4.0
-	branch = main
 [submodule "tricore-binutils-gdb"]
 	path = tricore-binutils-gdb
 	url = https://github.com/EEESlab/tricore-binutils-gdb.git

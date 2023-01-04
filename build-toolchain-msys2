@@ -4,7 +4,7 @@ export TOOLCHAIN_ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 export INSTALL_FOLDER=$TOOLCHAIN_ROOT/INSTALL
 export BUILD_FOLDER=$TOOLCHAIN_ROOT/BUILD
 export LOG_FOLDER=$TOOLCHAIN_ROOT/LOG
-export PATH=/opt/bin:$INSTALL_FOLDER/bin:$PATH
+export PATH=/mingw64/bin:/opt/bin:$INSTALL_FOLDER/bin:$PATH
 #PARALLEL_JOBS=$(nproc)
 PARALLEL_JOBS=1
 
@@ -24,7 +24,59 @@ fi
 
 
 ### Binutils MCS
-### TODO
+
+if [[ $* == *--clean-binutils-mcs* ]]; then
+	rm -fr $BUILD_FOLDER/binutils-mcs
+fi
+
+if [[ $* == *--binutils-mcs* || $* == *--all* ]]; then
+	export BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-binutils-gdb
+	mkdir -p $BUILD_FOLDER/binutils-mcs
+	mkdir -p $LOG_FOLDER
+	cd $BUILD_FOLDER/binutils-mcs
+	if ! $BINUTILS_SRC_FOLDER/configure \
+	LDFLAGS='-static' \
+	--target=mcs-elf \
+	--build=x86_64-linux-gnu \
+	--host=i686-w64-mingw32 \
+	--program-prefix=mcs-elf- \
+	--disable-threads \
+	--enable-nls \
+	--disable-itcl \
+	--disable-tk \
+	--disable-tcl \
+	--disable-winsup \
+	--disable-gdbtk \
+	--disable-libgui \
+	--disable-rda \
+	--disable-sid \
+	--disable-sim \
+	--disable-gdb \
+	--disable-newlib \
+	--disable-libgloss \
+	--disable-test-suite \
+	--enable-checking=release \
+	--with-gnu-ld \
+	--with-gnu-as \
+	--with-gmp=/mingw32 \
+	--prefix=$INSTALL_FOLDER \
+	target_alias=mcs-elf \
+	--disable-werror; then
+		echo "The build has failed during configure of binutils-mcs"
+		exit 1
+	fi
+	make --output-sync -j${PARALLEL_JOBS} LDFLAGS="-static" 2>&1 | tee $LOG_FOLDER/binutilsi-mcs.log
+	if test ${PIPESTATUS[0]} -ne 0; then
+		echo "The build has failed during make of binutils-mcs"
+		exit 1
+	fi
+	make install 2>&1 | tee -a  $LOG_FOLDER/binutilsi-mcs.log
+	if test ${PIPESTATUS[0]} -ne 0; then
+		echo "The build has failed during install of binutils-mcs"
+		exit 1
+	fi
+fi
+
 
 ### Binutils
 
@@ -40,6 +92,7 @@ if [[ $* == *--binutils* || $* == *--all* ]]; then
 	if ! $BINUTILS_SRC_FOLDER/configure \
 	LDFLAGS='-static' \
 	--target=tricore-elf \
+	--enable-targets=mcs-elf \
 	--build=x86_64-linux-gnu \
 	--host=i686-w64-mingw32 \
 	--program-prefix=tricore-elf- \
@@ -61,6 +114,7 @@ if [[ $* == *--binutils* || $* == *--all* ]]; then
 	--enable-checking=release \
 	--with-gnu-ld \
 	--with-gnu-as \
+	--with-gmp=/mingw32 \
 	--prefix=$INSTALL_FOLDER \
 	target_alias=tricore-elf \
 	--disable-werror; then

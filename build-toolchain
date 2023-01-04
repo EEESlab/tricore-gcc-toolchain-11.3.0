@@ -31,7 +31,7 @@ if [[ $* == *--clean-binutils-mcs* ]]; then
 fi
 
 if [[ $* == *--binutils-mcs* || $* == *--all* ]]; then
-	export BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-gcc-toolchain-9.4.0/binutils
+	export BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-binutils-gdb
 	mkdir -p $BUILD_FOLDER/binutils-mcs
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/binutils-mcs
@@ -57,8 +57,6 @@ if [[ $* == *--binutils-mcs* || $* == *--all* ]]; then
 	--enable-checking=release \
 	--with-gnu-ld \
 	--with-gnu-as \
-	--with-pkgversion=GPL_HIGHTEC_BINUTILS220 \
-	--with-bugurl=https://community.infineon.com/t5/AURIX/bd-p/AURIX \
 	--prefix=$INSTALL_FOLDER \
 	--disable-werror; then
 		echo "The build has failed during configure of binutils-mcs"
@@ -91,7 +89,7 @@ if [[ $* == *--binutils* || $* == *--all* ]]; then
 	if ! $BINUTILS_SRC_FOLDER/configure \
 	LDFLAGS='-static' \
 	--target=tricore-elf \
-	--enable-targets=tricore-elf \
+	--enable-targets=mcs-elf \
 	--program-prefix=tricore-elf- \
 	--disable-threads \
 	--enable-nls \
