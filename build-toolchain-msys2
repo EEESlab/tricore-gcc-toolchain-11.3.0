@@ -5,8 +5,7 @@ export INSTALL_FOLDER=$TOOLCHAIN_ROOT/INSTALL
 export BUILD_FOLDER=$TOOLCHAIN_ROOT/BUILD
 export LOG_FOLDER=$TOOLCHAIN_ROOT/LOG
 export PATH=/mingw64/bin:/opt/bin:$INSTALL_FOLDER/bin:$PATH
-#PARALLEL_JOBS=$(nproc)
-PARALLEL_JOBS=1
+PARALLEL_JOBS=$(nproc)
 
 
 
@@ -214,8 +213,8 @@ if [[ $* == *--newlib* || $* == *--all* ]]; then
 	export RANLIB_FOR_TARGET=$INSTALL_FOLDER/bin/tricore-elf-ranlib
 	export STRIP_FOR_TARGET=$INSTALL_FOLDER/bin/tricore-elf-strip
 	export READELF_FOR_TARGET=$INSTALL_FOLDER/bin/tricore-elf-readelf
-	if ! CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common' \
-	CXXFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common' \
+	if ! CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffunction-sections -mfast-div -fno-common' \
+	CXXFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffunction-sections -mfast-div -fno-common' \
 	$NEWLIB_SRC_FOLDER/configure \
 	--target=tricore-elf \
 	--host=x86_64-linux-gnu \
