@@ -4,7 +4,7 @@ export TOOLCHAIN_ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 export INSTALL_FOLDER=$TOOLCHAIN_ROOT/INSTALL
 export BUILD_FOLDER=$TOOLCHAIN_ROOT/BUILD
 export LOG_FOLDER=$TOOLCHAIN_ROOT/LOG
-export PATH=/mingw64/bin:/opt/bin:$INSTALL_FOLDER/bin:$PATH
+export PATH=/ucrt64/bin:/opt/bin:$INSTALL_FOLDER/bin:$PATH
 PARALLEL_JOBS=$(nproc)
 #PARALLEL_JOBS=1
 
@@ -38,7 +38,7 @@ if [[ $* == *--binutils-mcs* || $* == *--all* ]]; then
 	LDFLAGS='-static' \
 	--target=mcs-elf \
 	--build=x86_64-linux-gnu \
-	--host=i686-w64-mingw32 \
+	--host=x86_64-w64-mingw32 \
 	--program-prefix=mcs-elf- \
 	--disable-threads \
 	--enable-nls \
@@ -58,7 +58,7 @@ if [[ $* == *--binutils-mcs* || $* == *--all* ]]; then
 	--enable-checking=release \
 	--with-gnu-ld \
 	--with-gnu-as \
-	--with-gmp=/mingw32 \
+	--with-gmp=/ucrt64 \
 	--prefix=$INSTALL_FOLDER \
 	target_alias=mcs-elf \
 	--disable-werror; then
@@ -94,7 +94,7 @@ if [[ $* == *--binutils* || $* == *--all* ]]; then
 	--target=tricore-elf \
 	--enable-targets=mcs-elf \
 	--build=x86_64-linux-gnu \
-	--host=i686-w64-mingw32 \
+	--host=x86_64-w64-mingw32 \
 	--program-prefix=tricore-elf- \
 	--disable-threads \
 	--enable-nls \
@@ -114,7 +114,7 @@ if [[ $* == *--binutils* || $* == *--all* ]]; then
 	--enable-checking=release \
 	--with-gnu-ld \
 	--with-gnu-as \
-	--with-gmp=/mingw32 \
+	--with-gmp=/ucrt64 \
 	--prefix=$INSTALL_FOLDER \
 	target_alias=tricore-elf \
 	--disable-werror; then
@@ -146,14 +146,14 @@ if [[ $* == *--gcc-stage1* || $* == *--all* ]]; then
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/gcc-stage1
 	if ! $GCC_SRC_FOLDER/configure \
-	CFLAGS='-I/mingw32/include' \
-	CXXFLAGS='-I/mingw32/include' \
-	LDFLAGS='-static -L/mingw32/lib' \
+	CFLAGS='-I/ucrt64/include' \
+	CXXFLAGS='-I/ucrt64/include' \
+	LDFLAGS='-static -L/ucrt64/lib' \
 	CFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	CXXFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	--target=tricore-elf \
-	--build=i686-w64-mingw32 \
-	--host=i686-w64-mingw32 \
+	--build=x86_64-w64-mingw32 \
+	--host=x86_64-w64-mingw32 \
 	--src=../../tricore-gcc \
 	--enable-lib32 \
 	--disable-lib64 \
@@ -219,7 +219,7 @@ if [[ $* == *--newlib* || $* == *--all* ]]; then
 	$NEWLIB_SRC_FOLDER/configure \
 	--target=tricore-elf \
 	--host=x86_64-linux-gnu \
-	--build=i686-pc-mingw32 \
+        --build=i686-pc-mingw32 \
 	--prefix=$INSTALL_FOLDER; then
 		echo "The build has failed during configure of newlib"
 		exit 1
@@ -248,14 +248,14 @@ if [[ $* == *--gcc-stage2* || $* == *--all* ]]; then
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/gcc-stage2
 	if ! $GCC_SRC_FOLDER/configure \
-	CFLAGS='-I/mingw32/include' \
-	CXXFLAGS='-I/mingw32/include' \
-	LDFLAGS='-static -L/mingw32/lib' \
+	CFLAGS='-I/ucrt64/include' \
+	CXXFLAGS='-I/ucrt64/include' \
+	LDFLAGS='-static -L/ucrt64/lib' \
 	CFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	CXXFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	--target=tricore-elf \
-	--build=i686-w64-mingw32 \
-	--host=i686-w64-mingw32 \
+	--build=x86_64-w64-mingw32 \
+	--host=x86_64-w64-mingw32 \
 	--src=../../tricore-gcc \
 	--enable-lib32 \
 	--disable-lib64 \
