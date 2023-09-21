@@ -4,7 +4,7 @@ export TOOLCHAIN_ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 export INSTALL_FOLDER=$TOOLCHAIN_ROOT/INSTALL
 export BUILD_FOLDER=$TOOLCHAIN_ROOT/BUILD
 export LOG_FOLDER=$TOOLCHAIN_ROOT/LOG
-export PATH=/mingw64/bin:/opt/bin:$INSTALL_FOLDER/bin:$PATH
+export PATH=$INSTALL_FOLDER/bin:$PATH
 PARALLEL_JOBS=$(nproc)
 #PARALLEL_JOBS=1
 
@@ -37,7 +37,7 @@ if [[ $* == *--binutils-mcs* || $* == *--all* ]]; then
 	if ! $BINUTILS_SRC_FOLDER/configure \
 	LDFLAGS='-static' \
 	--target=mcs-elf \
-	--build=x86_64-linux-gnu \
+	--build=i686-w64-mingw32 \
 	--host=i686-w64-mingw32 \
 	--program-prefix=mcs-elf- \
 	--disable-threads \
@@ -93,7 +93,7 @@ if [[ $* == *--binutils* || $* == *--all* ]]; then
 	LDFLAGS='-static' \
 	--target=tricore-elf \
 	--enable-targets=mcs-elf \
-	--build=x86_64-linux-gnu \
+	--build=i686-w64-mingw32 \
 	--host=i686-w64-mingw32 \
 	--program-prefix=tricore-elf- \
 	--disable-threads \
@@ -218,7 +218,7 @@ if [[ $* == *--newlib* || $* == *--all* ]]; then
 	CXXFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffunction-sections -mfast-div -fno-common' \
 	$NEWLIB_SRC_FOLDER/configure \
 	--target=tricore-elf \
-	--host=x86_64-linux-gnu \
+	--host=i686-w64-mingw32 \
 	--build=i686-pc-mingw32 \
 	--prefix=$INSTALL_FOLDER; then
 		echo "The build has failed during configure of newlib"
