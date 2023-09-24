@@ -3,6 +3,7 @@ BUILD
 
 # Install folder
 INSTALL
+INSTALL-WIN
 
 # Log folder
 LOG
