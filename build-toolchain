@@ -268,7 +268,7 @@ if [[ $* == "--gcc-stage2" || $* == *--all* ]]; then
 		echo "The build has failed during make of gcc (stage 2)"
 		exit 1
 	fi
-	make install 2>&1 | tee -a $LOG_FOLDER/gcc_stage2.log
+	make install-strip 2>&1 | tee -a $LOG_FOLDER/gcc_stage2.log
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of gcc (stage 2)"
 		exit 1
@@ -420,7 +420,7 @@ if [[ $* == "--gcc-stage2-win" || $* == *--all* ]]; then
 		echo "The build has failed during make of gcc (stage 2) for Windows"
 		exit 1
 	fi
-	make install 2>&1 | tee -a $LOG_FOLDER/gcc_stage2-win.log
+	make install-strip 2>&1 | tee -a $LOG_FOLDER/gcc_stage2-win.log
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of gcc (stage 2) for Windows"
 		exit 1
