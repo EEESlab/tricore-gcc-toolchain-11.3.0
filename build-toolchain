@@ -37,7 +37,6 @@ if [[ $* == "--binutils-mcs" || $* == *--all* ]]; then
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/binutils-mcs
 	if ! $BINUTILS_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
 	--target=mcs-elf \
 	--program-prefix=mcs-elf- \
 	--disable-threads \
@@ -63,7 +62,7 @@ if [[ $* == "--binutils-mcs" || $* == *--all* ]]; then
 		echo "The build has failed during configure of binutils-mcs"
 		exit 1
 	fi
-        make --output-sync -j${PARALLEL_JOBS} LDFLAGS="-static" 2>&1 | tee $LOG_FOLDER/binutils_mcs.log
+        make --output-sync -j${PARALLEL_JOBS} 2>&1 | tee $LOG_FOLDER/binutils_mcs.log
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of binutils-mcs"
 		exit 1
@@ -88,7 +87,6 @@ if [[ $* == "--binutils" || $* == *--all* ]]; then
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/binutils
 	if ! $BINUTILS_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
 	--target=tricore-elf \
 	--enable-targets=mcs-elf \
 	--program-prefix=tricore-elf- \
@@ -115,7 +113,7 @@ if [[ $* == "--binutils" || $* == *--all* ]]; then
 		echo "The build has failed during configure of binutils"
 		exit 1
 	fi
-	make --output-sync -j${PARALLEL_JOBS} LDFLAGS="-static" 2>&1 | tee $LOG_FOLDER/binutils.log
+	make --output-sync -j${PARALLEL_JOBS} 2>&1 | tee $LOG_FOLDER/binutils.log
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of binutils"
 		exit 1
@@ -140,7 +138,6 @@ if [[ $* == *--gcc-stage1* || $* == *--all* ]]; then
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/gcc-stage1
 	if ! $GCC_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
 	CFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	CXXFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	--target=tricore-elf \
@@ -213,7 +210,7 @@ if [[ $* == *--newlib* || $* == *--all* ]]; then
 		echo "The build has failed during configure of newlib"
 		exit 1
 	fi
-	make -j${PARALLEL_JOBS} LDFLAGS="-static" all 2>&1 | tee $LOG_FOLDER/newlib.log
+	make -j${PARALLEL_JOBS} all 2>&1 | tee $LOG_FOLDER/newlib.log
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of newlib"
 	fi
@@ -237,7 +234,6 @@ if [[ $* == "--gcc-stage2" || $* == *--all* ]]; then
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/gcc-stage2
 	if ! $GCC_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
 	CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	CPPFLAGS_FOR_TARGET='-g -O2 -gdwarf-3 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	--target=tricore-elf \
@@ -289,7 +285,6 @@ if [[ $* == *--binutils-mcs-win* || $* == *--all* ]]; then
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/binutils-mcs-win
 	if ! $BINUTILS_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
 	--target=mcs-elf \
 	--host=x86_64-w64-mingw32 \
 	--program-prefix=mcs-elf- \
@@ -316,7 +311,7 @@ if [[ $* == *--binutils-mcs-win* || $* == *--all* ]]; then
 		echo "The build has failed during configure of binutils-mcs for Windows"
 		exit 1
 	fi
-        make --output-sync -j${PARALLEL_JOBS} LDFLAGS="-static" 2>&1 | tee $LOG_FOLDER/binutils_mcs-win.log
+        make --output-sync -j${PARALLEL_JOBS} 2>&1 | tee $LOG_FOLDER/binutils_mcs-win.log
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of binutils-mcs for Windows"
 		exit 1
@@ -339,7 +334,6 @@ if [[ $* == *--binutils-win* || $* == *--all* ]]; then
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/binutils-win
 	if ! $BINUTILS_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
 	--target=tricore-elf \
 	--host=x86_64-w64-mingw32 \
 	--enable-targets=mcs-elf \
@@ -367,7 +361,7 @@ if [[ $* == *--binutils-win* || $* == *--all* ]]; then
 		echo "The build has failed during configure of binutils fow Windows"
 		exit 1
 	fi
-	make --output-sync -j${PARALLEL_JOBS} LDFLAGS="-static" 2>&1 | tee $LOG_FOLDER/binutils-win.log
+	make --output-sync -j${PARALLEL_JOBS} 2>&1 | tee $LOG_FOLDER/binutils-win.log
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of binutils for Windows"
 		exit 1
@@ -391,7 +385,6 @@ if [[ $* == "--gcc-stage2-win" || $* == *--all* ]]; then
 	mkdir -p $LOG_FOLDER
 	cd $BUILD_FOLDER/gcc-stage2-win
 	if ! $GCC_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
 	CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	CPPFLAGS_FOR_TARGET='-g -O2 -gdwarf-3 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	--target=tricore-elf \
