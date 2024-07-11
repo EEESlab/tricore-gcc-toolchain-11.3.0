@@ -1,43 +1,81 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-export TOOLCHAIN_ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-export INSTALL_FOLDER=$TOOLCHAIN_ROOT/INSTALL
-export INSTALL_FOLDER_WIN=$TOOLCHAIN_ROOT/INSTALL-WIN
-export BUILD_FOLDER=$TOOLCHAIN_ROOT/BUILD
-export LOG_FOLDER=$TOOLCHAIN_ROOT/LOG
-export SCRIPTS=$TOOLCHAIN_ROOT/build_scripts
-export PATH=$INSTALL_FOLDER/bin:$PATH
+set -eu
+
+TOOLCHAIN_ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+INSTALL_FOLDER=$TOOLCHAIN_ROOT/INSTALL
+INSTALL_FOLDER_WIN=$TOOLCHAIN_ROOT/INSTALL-WIN
+BUILD_FOLDER=$TOOLCHAIN_ROOT/BUILD
+LOG_FOLDER=$TOOLCHAIN_ROOT/LOG
 PARALLEL_JOBS=$(nproc)
-#PARALLEL_JOBS=1
 
+export PATH="$INSTALL_FOLDER/bin:$PATH"
 
+# set default build flags if not available in env
+CFLAGS="${CFLAGS:--O2}"
+CXXFLAGS="${CXXFLAGS:--O2}"
+LDFLAGS="${LDFLAGS:--static -s}"
 
-if [[ $* == *--help* || $* == *-h* ]]; then
-	echo "Usage: build-toolchain [--all] [--binutils-mcs] [--binutils] [--gcc-stage1] [--newlib] [--gcc-stage2] [--clean-all] [--clean-binutils-mcs] [--clean-binutils] [--clean-gcc-stage1] [--clean-newlib] [--clean-gcc-stage2] [--clean-binutils-mcs-win] [--binutils-mcs-win] [--clean-binutils-win] [--binutils-win] [--clean-gcc-stage2-win] [--gcc-stage2-win] [--help | -h]"
-	exit 0
-fi
+print_usage() {
+	cat <<EOF
+build-toolchain [--help | -h] [-o step] [--clean-all]
 
+options:
+  -h, --help             Show this help message and exit
+  -o step, --only step   Build only specific build step
+  -c, --clean            Perform clean of the selected step (default=all)
+  -b, --build            Perform build of the selected step (default=all)
+  --clean-all            Delete all build and install folders
 
+Supported build steps are: [all, binutils-mcs, binutils-tc, gcc-stage1, newlib, gcc-stage2,
+binutils-mcs-win, binutils-tc-win, gcc-stage2-win]
+EOF
+	exit
+}
 
-if [[ $* == *--clean-all* ]]; then
-	rm -fr $BUILD_FOLDER
-	rm -fr $LOG_FOLDER
-fi
+clean_all_artifacts() {
+	rm -fr "$INSTALL_FOLDER" "$INSTALL_FOLDER_WIN" "$BUILD_FOLDER" "$LOG_FOLDER"
+	exit
+}
 
+parse_params() {
+	build_step="all"
+	build_task="build"
+
+	while :; do
+    	case "${1-}" in
+    	-h | --help) print_usage ;;
+		--clean-all) clean_all_artifacts ;;
+		-c | --clean) build_task="clean" ;;
+		-b | --build) build_task="build" ;;
+		-o | --only-step)
+		build_step="${2-}"
+		shift
+		;;
+    	-?*) echo "Unknown option: $1" ;;
+    *) break ;;
+    esac
+    shift
+  	done
+}
+
+parse_params "$@"
+task_string="$build_task-$build_step"
 
 ### Binutils MCS
 
-if [[ $* == "--clean-binutils-mcs" ]]; then
-	rm -fr $BUILD_FOLDER/binutils-mcs
+if [[ "$task_string" == "clean-binutils-mcs" || "$task_string" == "clean-all" ]]; then
+	echo "Deleting $BUILD_FOLDER/binutils-mcs..."
+	rm -fr "$BUILD_FOLDER/binutils-mcs"
 fi
 
-if [[ $* == "--binutils-mcs" || $* == *--all* ]]; then
-	export BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-binutils-gdb
-	mkdir -p $BUILD_FOLDER/binutils-mcs
-	mkdir -p $LOG_FOLDER
-	cd $BUILD_FOLDER/binutils-mcs
+if [[ "$task_string" == "build-binutils-mcs" || "$task_string" == "build-all" ]]; then
+	BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-binutils-gdb
+	mkdir -p "$BUILD_FOLDER/binutils-mcs"
+	mkdir -p "$LOG_FOLDER"
+	cd "$BUILD_FOLDER/binutils-mcs"
 	if ! $BINUTILS_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
+	LDFLAGS="$LDFLAGS" \
 	--target=mcs-elf \
 	--program-prefix=mcs-elf- \
 	--disable-threads \
@@ -58,17 +96,17 @@ if [[ $* == "--binutils-mcs" || $* == *--all* ]]; then
 	--enable-checking=release \
 	--with-gnu-ld \
 	--with-gnu-as \
-	--prefix=$INSTALL_FOLDER \
+	--prefix="$INSTALL_FOLDER" \
 	--disable-werror; then
 		echo "The build has failed during configure of binutils-mcs"
 		exit 1
 	fi
-        make --output-sync -j${PARALLEL_JOBS} LDFLAGS="-static" 2>&1 | tee $LOG_FOLDER/binutils_mcs.log
+        make --output-sync -j${PARALLEL_JOBS} LDFLAGS="$LDFLAGS" 2>&1 | tee "$LOG_FOLDER/binutils_mcs.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of binutils-mcs"
 		exit 1
 	fi
-	make install 2>&1 | tee -a $LOG_FOLDER/binutils_mcs.log
+	make install 2>&1 | tee -a "$LOG_FOLDER/binutils_mcs.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of binutils-mcs"
 		exit 1
@@ -78,17 +116,18 @@ fi
 
 ### Binutils
 
-if [[ $* == *--clean-binutils* ]]; then
-	rm -fr $BUILD_FOLDER/binutils
+if [[ "$task_string" == "clean-binutils-tc" || "$task_string" == "clean-all" ]]; then
+	echo "Deleting $BUILD_FOLDER/binutils-tc..."
+	rm -fr "$BUILD_FOLDER/binutils-tc"
 fi
 
-if [[ $* == "--binutils" || $* == *--all* ]]; then
-	export BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-binutils-gdb
-	mkdir -p $BUILD_FOLDER/binutils
-	mkdir -p $LOG_FOLDER
-	cd $BUILD_FOLDER/binutils
+if [[ "$task_string" == "build-binutils-tc" || "$task_string" == "build-all" ]]; then
+	BINUTILS_SRC_FOLDER="$TOOLCHAIN_ROOT/tricore-binutils-gdb"
+	mkdir -p "$BUILD_FOLDER/binutils-tc"
+	mkdir -p "$LOG_FOLDER"
+	cd "$BUILD_FOLDER/binutils-tc"
 	if ! $BINUTILS_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
+	LDFLAGS="$LDFLAGS" \
 	--target=tricore-elf \
 	--enable-targets=mcs-elf \
 	--program-prefix=tricore-elf- \
@@ -110,17 +149,17 @@ if [[ $* == "--binutils" || $* == *--all* ]]; then
 	--enable-checking=release \
 	--with-gnu-ld \
 	--with-gnu-as \
-	--prefix=$INSTALL_FOLDER \
+	--prefix="$INSTALL_FOLDER" \
 	--disable-werror; then
 		echo "The build has failed during configure of binutils"
 		exit 1
 	fi
-	make --output-sync -j${PARALLEL_JOBS} LDFLAGS="-static" 2>&1 | tee $LOG_FOLDER/binutils.log
+	make --output-sync -j${PARALLEL_JOBS} LDFLAGS="$LDFLAGS" 2>&1 | tee "$LOG_FOLDER/binutils.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of binutils"
 		exit 1
 	fi
-	make install 2>&1 | tee -a  $LOG_FOLDER/binutils.log
+	make install 2>&1 | tee -a  "$LOG_FOLDER/binutils.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of binutils"
 		exit 1
@@ -130,28 +169,29 @@ fi
 
 ### GCC stage1
 
-if [[ $* == *--clean-gcc-stage1* ]]; then
-	rm -fr $BUILD_FOLDER/gcc-stage1
+if [[ "$task_string" == "clean-gcc-stage1" || "$task_string" == "clean-all" ]]; then
+	echo "Deleting $BUILD_FOLDER/gcc-stage1..."
+	rm -fr "$BUILD_FOLDER/gcc-stage1"
 fi
 
-if [[ $* == *--gcc-stage1* || $* == *--all* ]]; then
-	export GCC_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-gcc
-	#Download necessary dependencies if they don't exist
+if [[ "$task_string" == "build-gcc-stage1" || "$task_string" == "build-all" ]]; then
+	GCC_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-gcc
+	# Download necessary dependencies if they don't exist
 	if [[ ! -d $GCC_SRC_FOLDER/gmp ]]; then
-		cd -- $GCC_SRC_FOLDER
+		cd -- "$GCC_SRC_FOLDER"
 		./contrib/download_prerequisites
 	fi
-	mkdir -p $BUILD_FOLDER/gcc-stage1
-	mkdir -p $LOG_FOLDER
-	cd $BUILD_FOLDER/gcc-stage1
+	mkdir -p "$BUILD_FOLDER/gcc-stage1"
+	mkdir -p "$LOG_FOLDER"
+	cd "$BUILD_FOLDER/gcc-stage1"
 	if ! $GCC_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
+	LDFLAGS="$LDFLAGS" \
 	CFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	CXXFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	--target=tricore-elf \
 	--enable-lib32 \
 	--disable-lib64 \
-	--prefix=$INSTALL_FOLDER \
+	--prefix="$INSTALL_FOLDER" \
 	--enable-languages=c,c++ \
 	--enable-libstdcxx-debug-flags='-gdwarf-3 -g -O0 -D_GLIBCXX_ASSERTIONS' \
 	--enable-c99 \
@@ -173,12 +213,12 @@ if [[ $* == *--gcc-stage1* || $* == *--all* ]]; then
 		echo "The build has failed during configure of gcc (stage 1)"
 		exit 1
 	fi
-	make -j${PARALLEL_JOBS} all-gcc 2>&1 | tee $LOG_FOLDER/gcc_stage1.log
+	make -j${PARALLEL_JOBS} all-gcc 2>&1 | tee "$LOG_FOLDER/gcc_stage1.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of gcc (stage 1)"
 		exit 1
 	fi
-	make install-gcc 2>&1 | tee -a $LOG_FOLDER/gcc_stage1.log
+	make install-gcc 2>&1 | tee -a "$LOG_FOLDER/gcc_stage1.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of gcc (stage 1)"
 		exit 1
@@ -188,15 +228,16 @@ fi
 
 ### Newlib
 
-if [[ $* == *--clean-newlib* ]]; then
-	rm -fr $BUILD_FOLDER/newlib
+if [[ "$task_string" == "clean-newlib" || "$task_string" == "clean-all" ]]; then
+	echo "Deleting $BUILD_FOLDER/newlib..."
+	rm -fr "$BUILD_FOLDER/newlib"
 fi
 
-if [[ $* == *--newlib* || $* == *--all* ]]; then
-	export NEWLIB_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-newlib-cygwin
-	mkdir -p $BUILD_FOLDER/newlib
-	mkdir -p $LOG_FOLDER
-	cd $BUILD_FOLDER/newlib
+if [[ "$task_string" == "build-newlib" || "$task_string" == "build-all" ]]; then
+	NEWLIB_SRC_FOLDER="$TOOLCHAIN_ROOT/tricore-newlib-cygwin"
+	mkdir -p "$BUILD_FOLDER/newlib"
+	mkdir -p "$LOG_FOLDER"
+	cd "$BUILD_FOLDER/newlib"
 	export CC_FOR_TARGET=$INSTALL_FOLDER/bin/tricore-elf-gcc
 	export CXX_FOR_TARGET=$INSTALL_FOLDER/bin/tricore-elf-c++
 	export GCC_FOR_TARGET=$INSTALL_FOLDER/bin/tricore-elf-gcc
@@ -214,42 +255,42 @@ if [[ $* == *--newlib* || $* == *--all* ]]; then
 	--target=tricore-elf \
 	--host=i686-w64-mingw32 \
 	--build=i686-pc-mingw32 \
-	--prefix=$INSTALL_FOLDER; then
+	--prefix="$INSTALL_FOLDER"; then
 		echo "The build has failed during configure of newlib"
 		exit 1
 	fi
-	make -j${PARALLEL_JOBS} LDFLAGS="-static" all 2>&1 | tee $LOG_FOLDER/newlib.log
+	make -j${PARALLEL_JOBS} LDFLAGS="$LDFLAGS" all 2>&1 | tee "$LOG_FOLDER/newlib.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of newlib"
 	fi
-	make install 2>&1 | tee -a $LOG_FOLDER/newlib.log
-	make install prefix=$INSTALL_FOLDER_WIN 2>&1 | tee -a $LOG_FOLDER/newlib-win.log
+	make install 2>&1 | tee -a "$LOG_FOLDER/newlib.log"
+	make install prefix=$INSTALL_FOLDER_WIN 2>&1 | tee -a "$LOG_FOLDER/newlib-win.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of newlib"
 		exit 1
 	fi
 fi
 
-
 ### GCC stage2
 
-if [[ $* == *--clean-gcc-stage2* ]]; then
-	rm -fr $BUILD_FOLDER/gcc-stage2
+if [[ "$task_string" == "clean-gcc-stage2" || "$task_string" == "clean-all" ]]; then
+	echo "Deleting $BUILD_FOLDER/gcc-stage2..."
+	rm -fr "$BUILD_FOLDER/gcc-stage2"
 fi
 
-if [[ $* == "--gcc-stage2" || $* == *--all* ]]; then
+if [[ "$task_string" == "build-gcc-stage2" || "$task_string" == "build-all" ]]; then
 	export GCC_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-gcc
-	mkdir -p $BUILD_FOLDER/gcc-stage2
-	mkdir -p $LOG_FOLDER
-	cd $BUILD_FOLDER/gcc-stage2
+	mkdir -p "$BUILD_FOLDER/gcc-stage2"
+	mkdir -p "$LOG_FOLDER"
+	cd "$BUILD_FOLDER/gcc-stage2"
 	if ! $GCC_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
+	LDFLAGS="$LDFLAGS" \
 	CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	CPPFLAGS_FOR_TARGET='-g -O2 -gdwarf-3 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	--target=tricore-elf \
 	--enable-lib32 \
 	--disable-lib64 \
-	--prefix=$INSTALL_FOLDER \
+	--prefix="$INSTALL_FOLDER" \
 	--enable-languages=c,c++ \
 	--enable-libstdcxx-debug-flags='-gdwarf-3 -g -O0 -D_GLIBCXX_ASSERTIONS' \
 	--enable-c99 \
@@ -273,29 +314,30 @@ if [[ $* == "--gcc-stage2" || $* == *--all* ]]; then
 		echo "The build has failed during configure of gcc (stage 2)"
 		exit 1
 	fi
-	make -j${PARALLEL_JOBS} all 2>&1 | tee $LOG_FOLDER/gcc_stage2.log
+	make -j${PARALLEL_JOBS} all 2>&1 | tee "$LOG_FOLDER/gcc_stage2.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of gcc (stage 2)"
 		exit 1
 	fi
-	make install-strip 2>&1 | tee -a $LOG_FOLDER/gcc_stage2.log
+	make install-strip 2>&1 | tee -a "$LOG_FOLDER/gcc_stage2.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of gcc (stage 2)"
 		exit 1
 	fi
 fi
 
-if [[ $* == *--clean-binutils-mcs-win* ]]; then
-	rm -fr $BUILD_FOLDER/binutils-mcs-win
+if [[ "$task_string" == "clean-binutils-mcs-win" || "$task_string" == "clean-all" ]]; then
+	echo "Deleting $BUILD_FOLDER/binutils-mcs-win..."
+	rm -fr "$BUILD_FOLDER/binutils-mcs-win"
 fi
 
-if [[ $* == *--binutils-mcs-win* || $* == *--all* ]]; then
+if [[ "$task_string" == "build-binutils-mcs-win" || "$task_string" == "build-all" ]]; then
 	export BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-binutils-gdb
-	mkdir -p $BUILD_FOLDER/binutils-mcs-win
-	mkdir -p $LOG_FOLDER
-	cd $BUILD_FOLDER/binutils-mcs-win
+	mkdir -p "$BUILD_FOLDER/binutils-mcs-win"
+	mkdir -p "$LOG_FOLDER"
+	cd "$BUILD_FOLDER/binutils-mcs-win"
 	if ! $BINUTILS_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
+	LDFLAGS="$LDFLAGS" \
 	--target=mcs-elf \
 	--host=x86_64-w64-mingw32 \
 	--program-prefix=mcs-elf- \
@@ -317,17 +359,17 @@ if [[ $* == *--binutils-mcs-win* || $* == *--all* ]]; then
 	--enable-checking=release \
 	--with-gnu-ld \
 	--with-gnu-as \
-	--prefix=$INSTALL_FOLDER_WIN \
+	--prefix="$INSTALL_FOLDER_WIN" \
 	--disable-werror; then
 		echo "The build has failed during configure of binutils-mcs for Windows"
 		exit 1
 	fi
-        make --output-sync -j${PARALLEL_JOBS} 2>&1 | tee $LOG_FOLDER/binutils_mcs-win.log
+        make --output-sync -j${PARALLEL_JOBS} 2>&1 | tee "$LOG_FOLDER/binutils_mcs-win.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of binutils-mcs for Windows"
 		exit 1
 	fi
-	make install 2>&1 | tee -a $LOG_FOLDER/binutils_mcs-win.log
+	make install 2>&1 | tee -a "$LOG_FOLDER/binutils_mcs-win.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of binutils-mcs for Windows"
 		exit 1
@@ -335,17 +377,18 @@ if [[ $* == *--binutils-mcs-win* || $* == *--all* ]]; then
 fi
 
 
-if [[ $* == *--clean-binutils-win* ]]; then
-	rm -fr $BUILD_FOLDER/binutils-win
+if [[ "$task_string" == "clean-binutils-tc-win" || "$task_string" == "clean-all" ]]; then
+	echo "Deleting $BUILD_FOLDER/binutils-tc-win..."
+	rm -fr "$BUILD_FOLDER/binutils-tc-win"
 fi
 
-if [[ $* == *--binutils-win* || $* == *--all* ]]; then
-	export BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-binutils-gdb
-	mkdir -p $BUILD_FOLDER/binutils-win
-	mkdir -p $LOG_FOLDER
-	cd $BUILD_FOLDER/binutils-win
+if [[ "$task_string" == "build-binutils-tc-win" || "$task_string" == "build-all" ]]; then
+	BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-binutils-gdb
+	mkdir -p "$BUILD_FOLDER/binutils-tc-win"
+	mkdir -p "$LOG_FOLDER"
+	cd "$BUILD_FOLDER/binutils-tc-win"
 	if ! $BINUTILS_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
+	LDFLAGS="$LDFLAGS" \
 	--target=tricore-elf \
 	--host=x86_64-w64-mingw32 \
 	--enable-targets=mcs-elf \
@@ -368,17 +411,17 @@ if [[ $* == *--binutils-win* || $* == *--all* ]]; then
 	--enable-checking=release \
 	--with-gnu-ld \
 	--with-gnu-as \
-	--prefix=$INSTALL_FOLDER_WIN \
+	--prefix="$INSTALL_FOLDER_WIN" \
 	--disable-werror; then
 		echo "The build has failed during configure of binutils fow Windows"
 		exit 1
 	fi
-	make --output-sync -j${PARALLEL_JOBS} 2>&1 | tee $LOG_FOLDER/binutils-win.log
+	make --output-sync -j${PARALLEL_JOBS} 2>&1 | tee "$LOG_FOLDER/binutils-tc-win.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of binutils for Windows"
 		exit 1
 	fi
-	make install 2>&1 | tee -a  $LOG_FOLDER/binutils-win.log
+	make install 2>&1 | tee -a  "$LOG_FOLDER/binutils-tc-win.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of binutils for Windows"
 		exit 1
@@ -387,24 +430,25 @@ fi
 
 
 
-if [[ $* == *--clean-gcc-stage2-win* ]]; then
-	rm -fr $BUILD_FOLDER/gcc-stage2
+if [[ "$task_string" == "clean-gcc-stage2-win" || "$task_string" == "clean-all" ]]; then
+	echo "Deleting $BUILD_FOLDER/gcc-stage2-win..."
+	rm -fr "$BUILD_FOLDER/gcc-stage2-win"
 fi
 
-if [[ $* == "--gcc-stage2-win" || $* == *--all* ]]; then
-	export GCC_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-gcc
-	mkdir -p $BUILD_FOLDER/gcc-stage2-win
-	mkdir -p $LOG_FOLDER
-	cd $BUILD_FOLDER/gcc-stage2-win
+if [[ "$task_string" == "build-gcc-stage2-win" || "$task_string" == "build-all" ]]; then
+	GCC_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-gcc
+	mkdir -p "$BUILD_FOLDER/gcc-stage2-win"
+	mkdir -p "$LOG_FOLDER"
+	cd "$BUILD_FOLDER/gcc-stage2-win"
 	if ! $GCC_SRC_FOLDER/configure \
-	LDFLAGS='-static' \
+	LDFLAGS="$LDFLAGS" \
 	CFLAGS_FOR_TARGET='-O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	CPPFLAGS_FOR_TARGET='-O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	--target=tricore-elf \
 	--host=x86_64-w64-mingw32 \
 	--enable-lib32 \
 	--disable-lib64 \
-	--prefix=$INSTALL_FOLDER_WIN \
+	--prefix="$INSTALL_FOLDER_WIN" \
 	--enable-languages=c,c++ \
 	--enable-libstdcxx-debug-flags='-gdwarf-3 -g -O0 -D_GLIBCXX_ASSERTIONS' \
 	--enable-c99 \
@@ -428,12 +472,12 @@ if [[ $* == "--gcc-stage2-win" || $* == *--all* ]]; then
 		echo "The build has failed during configure of gcc (stage 2) for Windows"
 		exit 1
 	fi
-	make -j${PARALLEL_JOBS} all 2>&1 | tee $LOG_FOLDER/gcc_stage2-win.log
+	make -j${PARALLEL_JOBS} all 2>&1 | tee "$LOG_FOLDER/gcc_stage2-win.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during make of gcc (stage 2) for Windows"
 		exit 1
 	fi
-	make install-strip 2>&1 | tee -a $LOG_FOLDER/gcc_stage2-win.log
+	make install-strip 2>&1 | tee -a "$LOG_FOLDER/gcc_stage2-win.log"
 	if test ${PIPESTATUS[0]} -ne 0; then
 		echo "The build has failed during install of gcc (stage 2) for Windows"
 		exit 1
