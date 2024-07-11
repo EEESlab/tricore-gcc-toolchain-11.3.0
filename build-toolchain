@@ -76,6 +76,8 @@ if [[ "$task_string" == "build-binutils-mcs" || "$task_string" == "build-all" ]]
 	cd "$BUILD_FOLDER/binutils-mcs"
 	if ! $BINUTILS_SRC_FOLDER/configure \
 	LDFLAGS="$LDFLAGS" \
+	CFLAGS="$CFLAGS" \
+	CXXFLAGS="$CXXFLAGS" \
 	--target=mcs-elf \
 	--program-prefix=mcs-elf- \
 	--disable-threads \
@@ -128,6 +130,8 @@ if [[ "$task_string" == "build-binutils-tc" || "$task_string" == "build-all" ]];
 	cd "$BUILD_FOLDER/binutils-tc"
 	if ! $BINUTILS_SRC_FOLDER/configure \
 	LDFLAGS="$LDFLAGS" \
+	CFLAGS="$CFLAGS" \
+	CXXFLAGS="$CXXFLAGS" \
 	--target=tricore-elf \
 	--enable-targets=mcs-elf \
 	--program-prefix=tricore-elf- \
@@ -186,6 +190,8 @@ if [[ "$task_string" == "build-gcc-stage1" || "$task_string" == "build-all" ]]; 
 	cd "$BUILD_FOLDER/gcc-stage1"
 	if ! $GCC_SRC_FOLDER/configure \
 	LDFLAGS="$LDFLAGS" \
+	CFLAGS="$CFLAGS" \
+	CXXFLAGS="$CXXFLAGS" \
 	CFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	CXXFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 	--target=tricore-elf \
@@ -285,6 +291,8 @@ if [[ "$task_string" == "build-gcc-stage2" || "$task_string" == "build-all" ]]; 
 	cd "$BUILD_FOLDER/gcc-stage2"
 	if ! $GCC_SRC_FOLDER/configure \
 	LDFLAGS="$LDFLAGS" \
+	CFLAGS="$CFLAGS" \
+	CXXFLAGS="$CXXFLAGS" \
 	CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	CPPFLAGS_FOR_TARGET='-g -O2 -gdwarf-3 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	--target=tricore-elf \
@@ -338,6 +346,8 @@ if [[ "$task_string" == "build-binutils-mcs-win" || "$task_string" == "build-all
 	cd "$BUILD_FOLDER/binutils-mcs-win"
 	if ! $BINUTILS_SRC_FOLDER/configure \
 	LDFLAGS="$LDFLAGS" \
+	CFLAGS="$CFLAGS" \
+	CXXFLAGS="$CXXFLAGS" \
 	--target=mcs-elf \
 	--host=x86_64-w64-mingw32 \
 	--program-prefix=mcs-elf- \
@@ -389,6 +399,8 @@ if [[ "$task_string" == "build-binutils-tc-win" || "$task_string" == "build-all"
 	cd "$BUILD_FOLDER/binutils-tc-win"
 	if ! $BINUTILS_SRC_FOLDER/configure \
 	LDFLAGS="$LDFLAGS" \
+	CFLAGS="$CFLAGS" \
+	CXXFLAGS="$CXXFLAGS" \
 	--target=tricore-elf \
 	--host=x86_64-w64-mingw32 \
 	--enable-targets=mcs-elf \
@@ -442,6 +454,8 @@ if [[ "$task_string" == "build-gcc-stage2-win" || "$task_string" == "build-all" 
 	cd "$BUILD_FOLDER/gcc-stage2-win"
 	if ! $GCC_SRC_FOLDER/configure \
 	LDFLAGS="$LDFLAGS" \
+	CFLAGS="$CFLAGS" \
+	CXXFLAGS="$CXXFLAGS" \
 	CFLAGS_FOR_TARGET='-O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	CPPFLAGS_FOR_TARGET='-O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 	--target=tricore-elf \
