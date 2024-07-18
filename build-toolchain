@@ -48,7 +48,7 @@ parse_params() {
 		--clean-all) clean_all_artifacts ;;
 		-c | --clean) build_task="clean" ;;
 		-b | --build) build_task="build" ;;
-		-o | --only-step)
+		-o | --only)
 		build_step="${2-}"
 		shift
 		;;
