@@ -13,7 +13,13 @@ Launch the build script:
 ./build-toolchain
 ```
 
-It is also possible to compile single components of the toolchain. For further information on the available options:
+It is also possible to compile single components of the toolchain.
+
+```
+./build-toolchain --build --only binutils-tc
+```
+
+For further information on the available options:
 
 ```
 ./build-toolchain --help
