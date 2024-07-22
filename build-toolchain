@@ -28,7 +28,8 @@ options:
   --clean-all            Delete all build and install folders
 
 Supported build steps are:
-  all               Build both windows and linux toolchains
+  all               Build both windows and linux toolchains (compiler + binutils + newlib)
+  linux             Build linux toolchain (compiler + binutils + newlib)
   binutils-mcs      Build MCS version of binutils for linux
   binutils-tc       Build Tricore version of binutils for linux
   gcc-stage1        Build stage1 GCC compiler for linux
@@ -72,12 +73,12 @@ task_string="$build_task-$build_step"
 
 ### Binutils MCS
 
-if [[ "$task_string" == "clean-binutils-mcs" || "$task_string" == "clean-all" ]]; then
+if [[ "$task_string" == "clean-binutils-mcs" || "$task_string" == "clean-all" || "$task_string" == "clean-linux" ]]; then
     echo "Deleting $BUILD_FOLDER/binutils-mcs..."
     rm -fr "$BUILD_FOLDER/binutils-mcs"
 fi
 
-if [[ "$task_string" == "build-binutils-mcs" || "$task_string" == "build-all" ]]; then
+if [[ "$task_string" == "build-binutils-mcs" || "$task_string" == "build-all" || "$task_string" == "build-linux" ]]; then
     BINUTILS_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-binutils-gdb
     mkdir -p "$BUILD_FOLDER/binutils-mcs"
     mkdir -p "$LOG_FOLDER"
@@ -126,12 +127,12 @@ fi
 
 ### Binutils
 
-if [[ "$task_string" == "clean-binutils-tc" || "$task_string" == "clean-all" ]]; then
+if [[ "$task_string" == "clean-binutils-tc" || "$task_string" == "clean-all" || "$task_string" == "clean-linux" ]]; then
     echo "Deleting $BUILD_FOLDER/binutils-tc..."
     rm -fr "$BUILD_FOLDER/binutils-tc"
 fi
 
-if [[ "$task_string" == "build-binutils-tc" || "$task_string" == "build-all" ]]; then
+if [[ "$task_string" == "build-binutils-tc" || "$task_string" == "build-all" || "$task_string" == "build-linux" ]]; then
     BINUTILS_SRC_FOLDER="$TOOLCHAIN_ROOT/tricore-binutils-gdb"
     mkdir -p "$BUILD_FOLDER/binutils-tc"
     mkdir -p "$LOG_FOLDER"
@@ -181,12 +182,12 @@ fi
 
 ### GCC stage1
 
-if [[ "$task_string" == "clean-gcc-stage1" || "$task_string" == "clean-all" ]]; then
+if [[ "$task_string" == "clean-gcc-stage1" || "$task_string" == "clean-all" || "$task_string" == "clean-linux" ]]; then
     echo "Deleting $BUILD_FOLDER/gcc-stage1..."
     rm -fr "$BUILD_FOLDER/gcc-stage1"
 fi
 
-if [[ "$task_string" == "build-gcc-stage1" || "$task_string" == "build-all" ]]; then
+if [[ "$task_string" == "build-gcc-stage1" || "$task_string" == "build-all" || "$task_string" == "build-linux" ]]; then
     GCC_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-gcc
     # Download necessary dependencies if they don't exist
     if [[ ! -d $GCC_SRC_FOLDER/gmp ]]; then
@@ -242,12 +243,12 @@ fi
 
 ### Newlib
 
-if [[ "$task_string" == "clean-newlib" || "$task_string" == "clean-all" ]]; then
+if [[ "$task_string" == "clean-newlib" || "$task_string" == "clean-all" || "$task_string" == "clean-linux" ]]; then
     echo "Deleting $BUILD_FOLDER/newlib..."
     rm -fr "$BUILD_FOLDER/newlib"
 fi
 
-if [[ "$task_string" == "build-newlib" || "$task_string" == "build-all" ]]; then
+if [[ "$task_string" == "build-newlib" || "$task_string" == "build-all" || "$task_string" == "build-linux" ]]; then
     NEWLIB_SRC_FOLDER="$TOOLCHAIN_ROOT/tricore-newlib-cygwin"
     mkdir -p "$BUILD_FOLDER/newlib"
     mkdir -p "$LOG_FOLDER"
@@ -287,12 +288,12 @@ fi
 
 ### GCC stage2
 
-if [[ "$task_string" == "clean-gcc-stage2" || "$task_string" == "clean-all" ]]; then
+if [[ "$task_string" == "clean-gcc-stage2" || "$task_string" == "clean-all" || "$task_string" == "clean-linux" ]]; then
     echo "Deleting $BUILD_FOLDER/gcc-stage2..."
     rm -fr "$BUILD_FOLDER/gcc-stage2"
 fi
 
-if [[ "$task_string" == "build-gcc-stage2" || "$task_string" == "build-all" ]]; then
+if [[ "$task_string" == "build-gcc-stage2" || "$task_string" == "build-all" || "$task_string" == "build-linux" ]]; then
     export GCC_SRC_FOLDER=$TOOLCHAIN_ROOT/tricore-gcc
     mkdir -p "$BUILD_FOLDER/gcc-stage2"
     mkdir -p "$LOG_FOLDER"
