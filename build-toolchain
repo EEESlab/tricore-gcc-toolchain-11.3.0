@@ -18,7 +18,7 @@ LDFLAGS="${LDFLAGS:--static -s}"
 
 print_usage() {
     cat <<EOF
-build-toolchain [--help | -h] [-o step] [--clean-all]
+build-toolchain [-h] [-c | -b] [-o step] [--clean-all]
 
 options:
   -h, --help             Show this help message and exit
@@ -27,8 +27,16 @@ options:
   -b, --build            Perform build of the selected step (default=all)
   --clean-all            Delete all build and install folders
 
-Supported build steps are: [all, binutils-mcs, binutils-tc, gcc-stage1, newlib, gcc-stage2,
-binutils-mcs-win, binutils-tc-win, gcc-stage2-win]
+Supported build steps are:
+  all               Build both windows and linux toolchains
+  binutils-mcs      Build MCS version of binutils for linux
+  binutils-tc       Build Tricore version of binutils for linux
+  gcc-stage1        Build stage1 GCC compiler for linux
+  newlib            Build standard library
+  gcc-stage2        Build stage2 (final) GCC compiler for linux
+  binutils-mcs-win  Build MCS version of binutils for win32
+  binutils-tc-win   Build Tricore version of binutils for win32
+  gcc-stage2-win    Build stage2 (final) GCC compiler for win32
 EOF
     exit
 }
