@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Publish Release artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Extract commit SHA
+        shell: bash
+        run: |
+          echo "SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+
+      - name: Download artifacts from latest workflow
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: build.yml
+          branch: ${{ github.event.release.target_commitish }}
+          workflow_conclusion: success
+          skip_unpack: false
+
+      - name: Rename build artifacts
+        run: |
+          mv tricore-gcc-artifacts/linux.zip tricore-gcc-11.3.1-${{ env.SHORT_SHA }}-linux.zip
+          mv tricore-gcc-artifacts/win32.zip tricore-gcc-11.3.1-${{ env.SHORT_SHA }}-win32.zip
+
+      - name: Push release artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.zip
