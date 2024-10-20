@@ -3,10 +3,10 @@ name: Build
 on:
   push:
     branches:
-      - 'main'
-      - 'feature/**'
+      - main
   pull_request:
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   build:
@@ -20,16 +20,29 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies
-        run: sudo ./install-deps
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install build-essential build-essential gcc-mingw-w64 g++-mingw-w64 texinfo flex bison libmpfr-dev libgmp-dev libmpc-dev zip libdebuginfod-dev zlib
 
-      - name: Build
-        run: ./build-toolchain
+      - name: Build Linux
+        run: |
+          mkdir build-linux
+          cd build-linux
+          ../configure --prefix /opt/linux
+          make -j$(nproc)
+
+      - name: Build Win32
+        run: |
+          mkdir build-win32
+          cd build-win32
+          ../configure --prefix=/opt/win32 --with-host=x86_64-w64-mingw32
+          make -j$(nproc)
 
       - name: Package
         run: |
-          cd ./INSTALL
+          cd /opt/linux
           zip -r9 ../linux.zip .
-          cd ../INSTALL-WIN
+          cd /opt/win32
           zip -r9X ../win32.zip .
       
       - name: Upload artifacts
@@ -37,4 +50,4 @@ jobs:
         with:
           if-no-files-found: error
           name: tricore-gcc-artifacts
-          path: ./*.zip
+          path: /opt/**/*.zip
