@@ -43,7 +43,6 @@ stamps/build-binutils-mcs: $(BINUTILS_SRCDIR)
 		--disable-libgloss \
 		--disable-test-suite \
 		--enable-checking=release \
-		@with_system_zlib@ \
 		--with-gnu-ld \
 		--with-gnu-as \
 		--disable-werror
@@ -76,7 +75,6 @@ stamps/build-binutils-tc: $(BINUTILS_SRCDIR)
 		--disable-libgloss \
 		--disable-test-suite \
 		--enable-checking=release \
-		@with_system_zlib@ \
 		--with-gnu-ld \
 		--with-gnu-as \
 		--disable-werror
@@ -108,7 +106,6 @@ stamps/build-gcc-stage1: $(GCC_SRCDIR)
 		--with-sysroot=$(INSTALL_DIR)/tricore-elf \
 		--enable-mingw-wildcard \
 		--disable-libstdcxx-pch \
-		@with_system_zlib@ \
 		--enable-newlib-elix-level=3 \
 		--enable-newlib-io-long-long \
 		--disable-newlib-supplied-syscalls \
@@ -168,7 +165,6 @@ stamps/build-gcc-stage2: $(GCC_SRCDIR) stamps/build-newlib
 		--with-gnu-as \
 		--with-newlib=yes \
 		--enable-mingw-wildcard \
-		@with_system_zlib@ \
 		--disable-libstdcxx-pch \
 		--enable-newlib-elix-level=3 \
 		--enable-newlib-io-long-long \

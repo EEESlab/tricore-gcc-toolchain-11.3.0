@@ -618,7 +618,6 @@ LIBOBJS
 with_gcc_src
 with_newlib_src
 with_binutils_src
-with_system_zlib
 configure_host
 NEED_GCC_EXTERNAL_LIBRARIES
 BASH
@@ -680,7 +679,6 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 with_host
-with_system_zlib
 with_binutils_src
 with_newlib_src
 with_gcc_src
@@ -1316,7 +1314,6 @@ Optional Packages:
   --with-host=x86_64-w64-mingw32
                           Sets the host for the tools, you probably want
                           nothing
-  --without-system-zlib   use the builtin copy of zlib from GCC
   --with-binutils-src     Set binutils source path, use builtin source by
                           default
   --with-newlib-src       Set newlib source path, use builtin source by
@@ -3971,26 +3968,6 @@ else $as_nop
   configure_host=""
 
 fi
-
-if test "x$with_system_zlib" != xno
-then :
-  with_system_zlib=--with-system-zlib
-
-else $as_nop
-  with_system_zlib=--without-system-zlib
-
-fi
-
-
-# Check whether --with-system-zlib was given.
-if test ${with_system_zlib+y}
-then :
-  withval=$with_system_zlib;
-else $as_nop
-  with_system_zlib=yes
-
-fi
-
 
 
 # Check whether --with-binutils-src was given.

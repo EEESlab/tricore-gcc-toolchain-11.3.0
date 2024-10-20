@@ -36,17 +36,6 @@ AS_IF([test "x$with_host" != xdefault],
 	[AC_SUBST(configure_host,--host=$with_host)],
 	[AC_SUBST(configure_host,"")])
 
-AS_IF([test "x$with_system_zlib" != xno],
-	[AC_SUBST(with_system_zlib,--with-system-zlib)],
-	[AC_SUBST(with_system_zlib,--without-system-zlib)])
-
-AC_ARG_WITH(system-zlib,
-	[AS_HELP_STRING([--without-system-zlib],
-		[use the builtin copy of zlib from GCC])],
-	[],
-	[with_system_zlib=yes]
-	)
-
 AC_ARG_WITH(binutils-src,
 	[AS_HELP_STRING([--with-binutils-src],[Set binutils source path, use builtin source by default])],
 	[],
