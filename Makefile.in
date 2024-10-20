@@ -8,14 +8,18 @@ GCC_SRCDIR := @with_gcc_src@
 
 CONFIGURE_HOST = @configure_host@
 
-all: build-binutils-mcs build-binutils-tc build-gcc-stage2
+all: stamps/build-binutils-mcs stamps/build-binutils-tc stamps/build-gcc-stage2
 
-clean-binutils-tc: 
+clean-binutils-tc:
+	rm -rf build-binutils-tc stamps/build-binutils-tc
+
+clean-binutils-mcs:
+	rm -rf build-binutils-mcs stamps/build-binutils-mcs
 
 clean:
-	rm -rf build-*
+	rm -rf build-* stamps
 
-build-binutils-mcs: $(BINUTILS_SRCDIR)
+stamps/build-binutils-mcs: $(BINUTILS_SRCDIR)
 	rm -rf $@ $(notdir $@)
 	mkdir $(notdir $@)
 	cd $(notdir $@) && $</configure \
@@ -47,7 +51,7 @@ build-binutils-mcs: $(BINUTILS_SRCDIR)
 	$(MAKE) -C $(notdir $@) install
 	mkdir -p $(dir $@) && touch $@
 
-build-binutils-tc: $(BINUTILS_SRCDIR)
+stamps/build-binutils-tc: $(BINUTILS_SRCDIR)
 	rm -rf $@ $(notdir $@)
 	mkdir $(notdir $@)
 	cd $(notdir $@) && $</configure \
@@ -80,7 +84,7 @@ build-binutils-tc: $(BINUTILS_SRCDIR)
 	$(MAKE) -C $(notdir $@) install
 	mkdir -p $(dir $@) && touch $@
 
-build-gcc-stage1: $(GCC_SRCDIR)
+stamps/build-gcc-stage1: $(GCC_SRCDIR)
 	rm -rf $@ $(notdir $@)
 	mkdir $(notdir $@)
 	cd $(notdir $@) && $</configure \
@@ -110,11 +114,11 @@ build-gcc-stage1: $(GCC_SRCDIR)
 		--disable-newlib-supplied-syscalls \
 		--disable-libssp \
 		--disable-test-suite
-	$(MAKE) -C $(notdir $@)
-	$(MAKE) -C $(notdir $@) install
+	$(MAKE) -C $(notdir $@) all-gcc
+	$(MAKE) -C $(notdir $@) install-gcc
 	mkdir -p $(dir $@) && touch $@
 
-build-newlib: $(NEWLIB_SRCDIR) build-gcc-stage1
+stamps/build-newlib: $(NEWLIB_SRCDIR) stamps/build-gcc-stage1
 	rm -rf $@ $(notdir $@)
 	mkdir $(notdir $@)
 	cd $(notdir $@) && $</configure \
@@ -139,7 +143,7 @@ build-newlib: $(NEWLIB_SRCDIR) build-gcc-stage1
 	$(MAKE) -C $(notdir $@) install
 	mkdir -p $(dir $@) && touch $@
 
-build-gcc-stage2: $(GCC_SRCDIR) build-gcc-stage1
+stamps/build-gcc-stage2: $(GCC_SRCDIR) stamps/build-newlib
 	rm -rf $@ $(notdir $@)
 	mkdir $(notdir $@)
 	cd $(notdir $@) && $</configure \
