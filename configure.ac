@@ -4,12 +4,9 @@
 AC_INIT([tricore-toolchain],[1.0])
 
 # Checks for programs.
-AC_PROG_AWK
 AC_PROG_YACC
 AC_PROG_CC
 AC_PROG_LEX
-AC_PROG_FGREP
-AC_PROG_GREP
 
 AC_PATH_PROG([BASH], [bash],
 	[AC_MSG_ERROR([bash not found])])
@@ -24,17 +21,6 @@ AC_CHECK_LIB(mpc, mpc_init2, ,
 AS_IF([test x"$need_gcc_external_libraries" != xno],
       [AC_SUBST(NEED_GCC_EXTERNAL_LIBRARIES,true)],
       [AC_SUBST(NEED_GCC_EXTERNAL_LIBRARIES,false)])
-
-AC_ARG_WITH(host,
-	[AS_HELP_STRING([--with-host=x86_64-w64-mingw32],
-			[Sets the host for the tools, you probably want nothing])],
-	[],
-	[with_host=default]
-	)
-
-AS_IF([test "x$with_host" != xdefault],
-	[AC_SUBST(configure_host,--host=$with_host)],
-	[AC_SUBST(configure_host,"")])
 
 AC_ARG_WITH(binutils-src,
 	[AS_HELP_STRING([--with-binutils-src],[Set binutils source path, use builtin source by default])],
