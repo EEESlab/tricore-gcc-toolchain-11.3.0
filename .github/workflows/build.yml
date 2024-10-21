@@ -11,7 +11,45 @@ on:
 
 jobs:
   linux-build:
-    name: Toolchain build
+    name: Toolchain Linux build
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install build-essential build-essential texinfo \
+            flex bison libmpfr-dev libgmp-dev libmpc-dev zip libdebuginfod-dev
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          export CFLAGS="-O2"
+          export CXXFLAGS="-O2"
+          export LDFLAGS="-static -s"
+          ../configure --prefix /opt/gcc
+          make -j$(nproc)
+
+      - name: Package
+        run: |
+          cd /opt/gcc
+          zip -r9 ../linux.zip .
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: tricore-gcc-artifacts
+          path: /opt/linux.zip
+
+  win32-build:
+    name: Toolchain Windows build
     runs-on: ubuntu-22.04
 
     steps:
@@ -34,14 +72,12 @@ jobs:
           export CFLAGS="-O2"
           export CXXFLAGS="-O2"
           export LDFLAGS="-static -s"
-          ../configure --prefix /opt/gcc
+          ../configure --prefix /opt/gcc --with-host=x86_64-w64-mingw32
           make -j$(nproc)
 
       - name: Package
         run: |
-          cd /opt/gcc/linux
-          zip -r9 ../linux.zip .
-          cd /opt/gcc/win32
+          cd /opt/gcc
           zip -r9 ../win32.zip .
       
       - name: Upload artifacts
@@ -49,5 +85,4 @@ jobs:
         with:
           if-no-files-found: error
           name: tricore-gcc-artifacts
-          path: /opt/gcc/*.zip
-
+          path: /opt/win32.zip

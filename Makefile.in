@@ -6,7 +6,18 @@ BINUTILS_SRCDIR := @with_binutils_src@
 NEWLIB_SRCDIR := @with_newlib_src@
 GCC_SRCDIR := @with_gcc_src@
 
-all: stamps/build-gcc-stage2-win
+CONFIGURE_HOST = @configure_host@
+
+ifeq (--host=x86_64-w64-mingw32, $(CONFIGURE_HOST))
+STAGE1_PREFIX := /tmp/stage1
+FINAL_PREFIX := $(INSTALL_DIR)
+else
+STAGE1_PREFIX := $(INSTALL_DIR)
+FINAL_PREFIX := $(INSTALL_DIR)
+endif
+
+
+all: stamps/build-gcc-stage2
 
 clean-binutils-tc:
 	rm -rf build-binutils-tc stamps/build-binutils-tc
@@ -23,15 +34,6 @@ clean-newlib:
 clean-gcc-stage2:
 	rm -rf build-gcc-stage2 stamps/build-gcc-stage2
 
-clean-binutils-tc-win:
-	rm -rf build-binutils-tc-win stamps/build-binutils-tc-win
-
-clean-binutils-mcs-win:
-	rm -rf build-binutils-mcs-win stamps/build-binutils-mcs-win
-
-clean-gcc-stage2-win:
-	rm -rf build-gcc-stage2-win stamps/build-gcc-stage2-win
-
 clean:
 	rm -rf build-* stamps
 
@@ -45,7 +47,8 @@ stamps/build-binutils-mcs: $(BINUTILS_SRCDIR)
 	cd $(notdir $@) && $</configure \
 		--target=mcs-elf \
 		--program-prefix=mcs-elf- \
-		--prefix=$(INSTALL_DIR)/linux \
+		--prefix=$(FINAL_PREFIX) \
+		$(CONFIGURE_HOST) \
 		--disable-threads \
 		--enable-nls \
 		--disable-itcl \
@@ -76,7 +79,8 @@ stamps/build-binutils-tc: $(BINUTILS_SRCDIR) stamps/build-binutils-mcs
 		--target=tricore-elf \
 		--enable-targets=mcs-elf \
 		--program-prefix=tricore-elf- \
-		--prefix=$(INSTALL_DIR)/linux \
+		--prefix=$(FINAL_PREFIX) \
+		$(CONFIGURE_HOST) \
 		--disable-threads \
 		--enable-nls \
 		--disable-itcl \
@@ -107,7 +111,7 @@ stamps/build-gcc-stage1: $(GCC_SRCDIR) stamps/install-deps stamps/build-binutils
 		CFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 		CXXFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 		--target=tricore-elf \
-		--prefix=$(INSTALL_DIR)/linux \
+		--prefix=$(STAGE1_PREFIX) \
 		--enable-lib32 \
 		--disable-lib64 \
 		--enable-languages=c,c++ \
@@ -136,136 +140,38 @@ stamps/build-newlib: $(NEWLIB_SRCDIR) stamps/build-gcc-stage1
 	rm -rf $@ $(notdir $@)
 	mkdir $(notdir $@)
 	cd $(notdir $@) && $</configure \
-		CC_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-gcc \
-		CXX_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-c++ \
-		GCC_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-gcc \
-		AR_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-ar \
-		AS_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-as \
-		LD_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-ld \
-		NM_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-nm \
-		OBJDUMP_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-objdump \
-		RANLIB_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-ranlib \
-		STRIP_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-strip \
-		READELF_FOR_TARGET=$(INSTALL_DIR)/linux/bin/tricore-elf-readelf \
+		CC_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-gcc \
+		CXX_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-c++ \
+		GCC_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-gcc \
+		AR_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-ar \
+		AS_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-as \
+		LD_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-ld \
+		NM_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-nm \
+		OBJDUMP_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-objdump \
+		RANLIB_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-ranlib \
+		STRIP_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-strip \
+		READELF_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-readelf \
 		CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffunction-sections -mfast-div -fno-common' \
 		CXXFLAGS_FOR_TARGET='-g -gdwarf-3 -O2  -ffunction-sections -mfast-div -fno-common' \
 		--target=tricore-elf \
-		--prefix=$(INSTALL_DIR)/linux \
+		--prefix=$(FINAL_PREFIX) \
 		--host=i686-w64-mingw32 \
 		--build=i686-pc-mingw32
 	$(MAKE) -C $(notdir $@) all
 	$(MAKE) -C $(notdir $@) install
-	$(MAKE) -C $(notdir $@) install prefix=$(INSTALL_DIR)/win32
 	mkdir -p $(dir $@) && touch $@
 
 stamps/build-gcc-stage2: $(GCC_SRCDIR) stamps/install-deps stamps/build-newlib
 	rm -rf $@ $(notdir $@)
 	mkdir $(notdir $@)
-	cd $(notdir $@) && $</configure \
+	cd $(notdir $@) && PATH=$(STAGE1_PREFIX)/bin:$$PATH $</configure \
 		CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 		CPPFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 		--target=tricore-elf \
 		--enable-lib32 \
 		--disable-lib64 \
-		--prefix=$(INSTALL_DIR)/linux \
-		--enable-languages=c,c++ \
-		--enable-libstdcxx-debug-flags='-gdwarf-3 -g -O0 -D_GLIBCXX_ASSERTIONS' \
-		--enable-c99 \
-		--enable-long-long \
-		--enable-checking \
-		--enable-nls \
-		--enable-static \
-		--disable-threads \
-		--disable-shared \
-		--with-headers=yes \
-		--with-gnu-ld \
-		--with-gnu-as \
-		--with-newlib=yes \
-		--enable-mingw-wildcard \
-		--disable-libstdcxx-pch \
-		--enable-newlib-elix-level=3 \
-		--enable-newlib-io-long-long \
-		--disable-newlib-supplied-syscalls \
-		--disable-libssp \
-		--disable-test-suite
-	$(MAKE) -C $(notdir $@) all
-	$(MAKE) -C $(notdir $@) install
-	mkdir -p $(dir $@) && touch $@
-
-stamps/build-binutils-mcs-win: $(BINUTILS_SRCDIR) stamps/build-gcc-stage2
-	rm -rf $@ $(notdir $@)
-	mkdir $(notdir $@)
-	cd $(notdir $@) && $</configure \
-		--target=mcs-elf \
-		--program-prefix=mcs-elf- \
-		--host=x86_64-w64-mingw32 \
-		--prefix=$(INSTALL_DIR)/win32 \
-		--disable-threads \
-		--enable-nls \
-		--disable-itcl \
-		--disable-tk \
-		--disable-tcl \
-		--disable-winsup \
-		--disable-gdbtk \
-		--disable-libgui \
-		--disable-rda \
-		--disable-sid \
-		--disable-sim \
-		--disable-gdb \
-		--disable-newlib \
-		--disable-libgloss \
-		--disable-test-suite \
-		--enable-checking=release \
-		--with-gnu-ld \
-		--with-gnu-as \
-		--disable-werror
-	$(MAKE) -C $(notdir $@)
-	$(MAKE) -C $(notdir $@) install
-	mkdir -p $(dir $@) && touch $@
-
-stamps/build-binutils-tc-win: $(BINUTILS_SRCDIR) stamps/build-binutils-mcs-win
-	rm -rf $@ $(notdir $@)
-	mkdir $(notdir $@)
-	cd $(notdir $@) && $</configure \
-		--target=tricore-elf \
-		--enable-targets=mcs-elf \
-		--program-prefix=tricore-elf- \
-		--host=x86_64-w64-mingw32 \
-		--prefix=$(INSTALL_DIR)/win32 \
-		--disable-threads \
-		--enable-nls \
-		--disable-itcl \
-		--disable-tk \
-		--disable-tcl \
-		--disable-winsup \
-		--disable-gdbtk \
-		--disable-libgui \
-		--disable-rda \
-		--disable-sid \
-		--disable-sim \
-		--disable-gdb \
-		--disable-newlib \
-		--disable-libgloss \
-		--disable-test-suite \
-		--enable-checking=release \
-		--with-gnu-ld \
-		--with-gnu-as \
-		--disable-werror
-	$(MAKE) -C $(notdir $@)
-	$(MAKE) -C $(notdir $@) install
-	mkdir -p $(dir $@) && touch $@
-	
-stamps/build-gcc-stage2-win: $(GCC_SRCDIR) stamps/install-deps stamps/build-binutils-tc-win
-	rm -rf $@ $(notdir $@)
-	mkdir $(notdir $@)
-	cd $(notdir $@) && PATH=$(INSTALL_DIR)/linux/bin:$$PATH $</configure \
-		CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
-		CPPFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
-		--target=tricore-elf \
-		--enable-lib32 \
-		--disable-lib64 \
-		--host=x86_64-w64-mingw32 \
-		--prefix=$(INSTALL_DIR)/win32 \
+		--prefix=$(FINAL_PREFIX) \
+		$(CONFIGURE_HOST) \
 		--enable-languages=c,c++ \
 		--enable-libstdcxx-debug-flags='-gdwarf-3 -g -O0 -D_GLIBCXX_ASSERTIONS' \
 		--enable-c99 \
