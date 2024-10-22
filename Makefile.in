@@ -8,15 +8,6 @@ GCC_SRCDIR := @with_gcc_src@
 
 CONFIGURE_HOST = @configure_host@
 
-ifeq (--host=x86_64-w64-mingw32, $(CONFIGURE_HOST))
-STAGE1_PREFIX := /tmp/stage1
-FINAL_PREFIX := $(INSTALL_DIR)
-else
-STAGE1_PREFIX := $(INSTALL_DIR)
-FINAL_PREFIX := $(INSTALL_DIR)
-endif
-
-
 all: stamps/build-gcc-stage2
 
 clean-binutils-tc:
@@ -47,7 +38,7 @@ stamps/build-binutils-mcs: $(BINUTILS_SRCDIR)
 	cd $(notdir $@) && $</configure \
 		--target=mcs-elf \
 		--program-prefix=mcs-elf- \
-		--prefix=$(FINAL_PREFIX) \
+		--prefix=$(INSTALL_DIR) \
 		$(CONFIGURE_HOST) \
 		--disable-threads \
 		--enable-nls \
@@ -79,7 +70,7 @@ stamps/build-binutils-tc: $(BINUTILS_SRCDIR) stamps/build-binutils-mcs
 		--target=tricore-elf \
 		--enable-targets=mcs-elf \
 		--program-prefix=tricore-elf- \
-		--prefix=$(FINAL_PREFIX) \
+		--prefix=$(INSTALL_DIR) \
 		$(CONFIGURE_HOST) \
 		--disable-threads \
 		--enable-nls \
@@ -111,7 +102,7 @@ stamps/build-gcc-stage1: $(GCC_SRCDIR) stamps/install-deps stamps/build-binutils
 		CFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 		CXXFLAGS_FOR_TARGET='-g -O2 -gdwarf-3' \
 		--target=tricore-elf \
-		--prefix=$(STAGE1_PREFIX) \
+		--prefix=$(INSTALL_DIR) \
 		--enable-lib32 \
 		--disable-lib64 \
 		--enable-languages=c,c++ \
@@ -140,21 +131,21 @@ stamps/build-newlib: $(NEWLIB_SRCDIR) stamps/build-gcc-stage1
 	rm -rf $@ $(notdir $@)
 	mkdir $(notdir $@)
 	cd $(notdir $@) && $</configure \
-		CC_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-gcc \
-		CXX_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-c++ \
-		GCC_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-gcc \
-		AR_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-ar \
-		AS_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-as \
-		LD_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-ld \
-		NM_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-nm \
-		OBJDUMP_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-objdump \
-		RANLIB_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-ranlib \
-		STRIP_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-strip \
-		READELF_FOR_TARGET=$(STAGE1_PREFIX)/bin/tricore-elf-readelf \
+		CC_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-gcc \
+		CXX_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-c++ \
+		GCC_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-gcc \
+		AR_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-ar \
+		AS_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-as \
+		LD_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-ld \
+		NM_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-nm \
+		OBJDUMP_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-objdump \
+		RANLIB_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-ranlib \
+		STRIP_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-strip \
+		READELF_FOR_TARGET=$(INSTALL_DIR)/bin/tricore-elf-readelf \
 		CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffunction-sections -mfast-div -fno-common' \
 		CXXFLAGS_FOR_TARGET='-g -gdwarf-3 -O2  -ffunction-sections -mfast-div -fno-common' \
 		--target=tricore-elf \
-		--prefix=$(FINAL_PREFIX) \
+		--prefix=$(INSTALL_DIR) \
 		--host=i686-w64-mingw32 \
 		--build=i686-pc-mingw32
 	$(MAKE) -C $(notdir $@) all
@@ -164,13 +155,13 @@ stamps/build-newlib: $(NEWLIB_SRCDIR) stamps/build-gcc-stage1
 stamps/build-gcc-stage2: $(GCC_SRCDIR) stamps/install-deps stamps/build-newlib
 	rm -rf $@ $(notdir $@)
 	mkdir $(notdir $@)
-	cd $(notdir $@) && PATH=$(STAGE1_PREFIX)/bin:$$PATH $</configure \
+	cd $(notdir $@) && PATH=$(INSTALL_DIR)/bin:$$PATH $</configure \
 		CFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 		CPPFLAGS_FOR_TARGET='-g -gdwarf-3 -O2 -ffast-math -ffunction-sections -mfast-div -fno-common -mno-eabi-bitfield-limit' \
 		--target=tricore-elf \
 		--enable-lib32 \
 		--disable-lib64 \
-		--prefix=$(FINAL_PREFIX) \
+		--prefix=$(INSTALL_DIR) \
 		$(CONFIGURE_HOST) \
 		--enable-languages=c,c++ \
 		--enable-libstdcxx-debug-flags='-gdwarf-3 -g -O0 -D_GLIBCXX_ASSERTIONS' \
