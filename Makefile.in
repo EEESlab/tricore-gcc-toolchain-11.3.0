@@ -29,7 +29,7 @@ clean:
 	rm -rf build-* stamps
 
 stamps/install-deps: $(GCC_SRCDIR)
-	if test -f $</contrib/download_prerequisites && test "@NEED_GCC_EXTERNAL_LIBRARIES@" = "true"; then cd $< && ./contrib/download_prerequisites; fi
+	if test -f $</contrib/download_prerequisites; then cd $< && ./contrib/download_prerequisites; fi
 	mkdir -p $(dir $@) && touch $@
 
 stamps/build-binutils-mcs: $(BINUTILS_SRCDIR)

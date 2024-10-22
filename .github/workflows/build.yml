@@ -50,7 +50,6 @@ jobs:
           ../configure --prefix /opt/gcc/win32 --with-host=x86_64-w64-mingw32
           make -j$(nproc) stamps/build-binutils-tc
           export PATH="/opt/gcc/linux/bin:$PATH"
-          ../tricore-gcc/contrib/download_prerequisites
           make -j$(nproc) stamps/build-gcc-stage2-only
 
       - name: Package
