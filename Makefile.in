@@ -25,6 +25,9 @@ clean-newlib:
 clean-gcc-stage2:
 	rm -rf build-gcc-stage2 stamps/build-gcc-stage2
 
+clean-gcc-stage2-only:
+	rm -rf build-gcc-stage2-only stamps/build-gcc-stage2-only
+
 clean:
 	rm -rf build-* stamps
 
