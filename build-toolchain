@@ -153,6 +153,7 @@ if [[ $* == *--gcc-stage1* || $* == *--all* ]]; then
 	--enable-checking \
 	--enable-nls \
 	--enable-static \
+	--enable-libatomic \
 	--disable-threads \
 	--disable-shared \
 	--with-headers=yes \
@@ -250,6 +251,7 @@ if [[ $* == *--gcc-stage2* || $* == *--all* ]]; then
 	--enable-checking \
 	--enable-nls \
 	--enable-static \
+	--enable-libatomic \
 	--disable-threads \
 	--disable-shared \
 	--with-headers=yes \
